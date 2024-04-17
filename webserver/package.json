@@ -1,0 +1,17 @@
+{
+	"name": "wence",
+	"version": "1.0.0",
+	"description": "",
+	"main": "main.js",
+	"scripts": {
+		"start": "node --watch main.js"
+	},
+	"author": "plop & lumyx",
+	"license": "ISC",
+	"dependencies": {
+		"dotenv": "^16.4.5",
+		"express": "^4.19.2",
+		"socket.io": "^4.7.5",
+		"ws": "^8.16.0"
+	}
+}
