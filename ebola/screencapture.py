@@ -1,34 +1,37 @@
-import pyautogui
+import threading
 import asyncio
 import socketio
 import base64
 from aiohttp import web
 import mss
 
-sio = socketio.AsyncServer(cors_allowed_origins="http://localhost:4100")
+sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
 
 SOCKET_PORT = 4101
 
-# async def some_background_task():
-#     await asyncio.sleep(10)
-#     sio.emit('my event', data={'foo': 'bar'}, room='my room')
+_capture_screen = bool(False)
 
 @sio.event
 async def connect(sid, environ):
     print('connect ', sid)
-    # asyncio.create_task(some_background_task())
 
 @sio.event
 async def disconnect(sid):
     print('disconnect ', sid)
+    await stop_stream()
     
 @sio.event
-async def start_screen(*_):
-    print("capture_screen")
+async def start_stream(*_):
+    print("start_stream")
+    global _capture_screen
+    _capture_screen = True
+    await capture_screen()
+
     
-    for _ in range(0, 50):
+async def capture_screen():
+    while _capture_screen:
         with mss.mss() as sct:
             sct.compression_level = 1
             monitor = sct.monitors[1]  # or a region
@@ -37,8 +40,14 @@ async def start_screen(*_):
             png = mss.tools.to_png(sct_img.rgb, sct_img.size)
             png_data = base64.b64encode(png).decode()
             
-            await sio.emit('screen-data', png_data)
-            await asyncio.sleep(0.05)
+            await sio.emit('stream-data', png_data)
+            await asyncio.sleep(0.1)
+
+@sio.event
+async def stop_stream(*_):
+    global _capture_screen
+    _capture_screen = False
+    print("stop_screen")
 
 
 if __name__ == '__main__':

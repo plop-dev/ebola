@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Main</title>
+
+		<link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body class="h-screen w-screen overflow-hidden">
+		<main class="p-6 flex flex-col gap-8 items-center">
+			<div class="text-4xl font-bold w-full h-max text-center">Dashboard</div>
+			<div class="grid grid-rows-3 grid-cols-3 grid-flow-row gap-x-24 gap-y-12">
+				<% ebolas.forEach(ebola => { %>
+				<div class="card w-96 bg-base-300 shadow-xl">
+					<div class="card-body">
+						<h2 class="card-title"><%= ebola.name %></h2>
+						<p class="font-bold">Port number: <span class="font-normal text-sm"><%= ebola.port %></span></p>
+						<div class="card-actions justify-end">
+							<a href="/control/<%= ebola.name.toLowerCase().split(' ').join('-') %>" class="btn btn-primary">Go</a>
+						</div>
+					</div>
+				</div>
+				<% }) %>
+			</div>
+		</main>
+	</body>
+</html>

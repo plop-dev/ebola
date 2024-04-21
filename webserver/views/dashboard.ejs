@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Main</title>
+
+		<link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body class="h-screen w-screen overflow-hidden">
+		<main class="grid grid-cols-2 grid-rows-[1fr,2fr] h-full w-full p-6 gap-6">
+			<div class="w-full h-auto col-span-2 flex items-center gap-3">
+				<div class="font-medium text-3xl"><%= ebola.name %></div>
+				<% if (ebola.status === 'online') { %>
+				<div id="status-badge" class="badge badge-xl badge-success relative top-1"></div>
+				<% } else if (ebola.status === 'offline') { %>
+				<div id="status-badge" class="badge badge-xl badge-error relative top-1"></div>
+				<% } %>
+			</div>
+			<div class="card border-2 border-primary rounded-xl h-full h-full w-full">
+				<div class="min-h-2xl h-2xl aspect-video px-3 pt-3">
+					<img id="stream" class="aspect-video rounded-md" />
+					<span id="nodisplay" class="bg-base-300 rounded-md text-xl text-center aspect-video flex items-center justify-center"
+						>No display<br />Start streaming to view remote screen</span
+					>
+				</div>
+				<div class="control-container card-body">
+					<h2 class="card-title">Control</h2>
+					<div class="controls h-full card-actions flex flex-col gap-6">
+						<div class="buttons flex flex-row gap-4">
+							<button id="start-stream" class="btn btn-primary">Start Stream</button>
+							<button id="stop-stream" class="btn">Stop Stream</button>
+						</div>
+						<div class="information grid my-auto grid-rows-2 auto-cols-auto grid-flow-col min-h-none min-w-none gap-x-10 gap-y-5">
+							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+							<div class="elapsed flex-1 bg-base-100 rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+							<div class="elapsed flex-1 bg-base-100 rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+								<label>Time Elapsed</label>
+								<span id="minutes">00</span>:<span id="seconds">00</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="cmds grid grid-cols-1 grid-rows-[12fr,1fr] gap-3 border-2 border-primary rounded-xl h-full h-full w-full p-3">
+				<div class="log w-full h-full">
+					<div id="command-log" class="font-mono border-[2px] border-neutral rounded-md h-full w-full overflow-y-auto">
+						<p class="flex flex-row"><span class="font-bold">file location:</span> ls</p>
+					</div>
+				</div>
+				<div class="prompt w-full h-full border-neutral rounded-md">
+					<input
+						id="command-input"
+						type="text"
+						placeholder="Enter command here"
+						class="input font-mono input-bordered border-2 border-neutral input-neutral w-full" />
+				</div>
+			</div>
+		</main>
+
+		<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+		<script>
+			//#region socket init
+			const socket = io('http://localhost:4101', { transports: ['websocket'] });
+
+			document.addEventListener('DOMContentLoaded', event => {
+				let counter = 0;
+				if (!socket.connected) {
+					let checkConnected = setInterval(() => {
+						counter += 1;
+
+						if (counter === 10 && !socket.connected) {
+							changeStatus('offline');
+							clearInterval(checkConnected);
+						}
+					}, 100);
+				}
+			});
+
+			socket.on('disconnect', async () => {
+				await changeStatus('offline');
+			});
+			socket.on('connect', async () => {
+				await changeStatus('online');
+			});
+
+			socket.on('stream-data', data => {
+				document.getElementById('stream').setAttribute('src', `data:image/png;base64,${data}`);
+
+				if (document.getElementById('stream').style.display !== 'flex') {
+					document.getElementById('stream').style.display = 'flex';
+					document.getElementById('nodisplay').style.display = 'none';
+				}
+			});
+
+			async function changeStatus(status) {
+				const badge = document.getElementById('status-badge');
+				status === 'online'
+					? (badge.classList.add('badge-success'), badge.classList.remove('badge-error'))
+					: (badge.classList.add('badge-error'), badge.classList.remove('badge-success'));
+
+				const data = { status: status };
+
+				await fetch('http://localhost:4100/control/wence', {
+					method: 'POST',
+					body: JSON.stringify(data),
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+			}
+			//#endregion
+
+			//#region elapsed time
+			let minutesLabel = document.getElementById('minutes');
+			let secondsLabel = document.getElementById('seconds');
+			let totalSeconds = 0;
+
+			function startTimeElapsed() {
+				minutesLabel.innerHTML = '00';
+				secondsLabel.innerHTML = '00';
+				totalSeconds = 0;
+				timer = setInterval(setTime, 1000);
+			}
+			function stopTimeElapsed() {
+				clearInterval(timer);
+			}
+
+			function setTime() {
+				++totalSeconds;
+				secondsLabel.innerHTML = pad(totalSeconds % 60);
+				minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+			}
+
+			function pad(val) {
+				var valString = val + '';
+				if (valString.length < 2) {
+					return '0' + valString;
+				} else {
+					return valString;
+				}
+			}
+			//#endregion
+
+			//#region stream events
+			document.addEventListener('DOMContentLoaded', event => {
+				document.getElementById('stream').style.display = 'none';
+			});
+
+			document.getElementById('start-stream').addEventListener('click', () => {
+				socket.emit('start_stream');
+				startTimeElapsed();
+				document.getElementById('stream').style.display = 'flex';
+				document.getElementById('nodisplay').style.display = 'none';
+			});
+			document.getElementById('stop-stream').addEventListener('click', () => {
+				socket.emit('stop_stream');
+				stopTimeElapsed();
+				setTimeout(() => {
+					document.getElementById('stream').style.display = 'none';
+					document.getElementById('nodisplay').style.display = 'flex';
+				}, 200);
+			});
+			//#endregion
+
+			//#region commands
+			const commandLog = document.getElementById('command-log');
+			const commandInput = document.getElementById('command-input');
+
+			commandInput.addEventListener('submit', event => {
+				const command = commandInput.value;
+
+				commandInput.value = '';
+			});
+			//#endregion
+		</script>
+	</body>
+</html>
