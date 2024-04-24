@@ -14,16 +14,13 @@ let ebolas = [
 		name: 'Wence',
 		status: 'online',
 		port: 4101,
+		host: 'localhost',
 	},
 	{
-		name: 'Someone Else',
+		name: 'ItsArctic',
 		status: 'offline',
 		port: 4102,
-	},
-	{
-		name: 'Someone Else (Again)',
-		status: 'online',
-		port: 4103,
+		host: '145.40.191.247',
 	},
 ];
 
@@ -34,12 +31,12 @@ app.get('/test', (req, res) => {
 	res.render('dashboard');
 });
 app.get('/control/*', (req, res) => {
-	const ebola = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1]);
+	const ebola = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1].toLowerCase());
 	res.render('dashboard', { ebola });
 });
 app.post('/control/*', (req, res) => {
 	const data = req.body;
-	const ebola = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1]);
+	const ebola = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1].toLowerCase());
 
 	ebola.status = data.status;
 });

