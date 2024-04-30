@@ -56,13 +56,12 @@ async def start_stream(_, data):
     
     print("start_stream with res:", res + ", fps:", fps)
     _capture_screen = True
-    # await capture_screen()
+    
     asyncio.create_task(capture_screen(res, fps))
     
     if audio_on:
         audio_thread = threading.Thread(target=asyncio.run, args=(stream_audio(),), daemon=True)
         audio_thread.start()
-        # asyncio.create_task(stream_audio())
 
     
 async def capture_screen(res, fps):
