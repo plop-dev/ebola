@@ -47,13 +47,17 @@ async def disconnect(sid):
     await stop_stream()
     
 @sio.event
-async def start_stream(_, res):
+async def start_stream(_, data):
     global audio_on, _capture_screen
     
-    print("start_stream with res:", res)
+    res = data['res']
+    fps = data['fps']
+    fps = 1 / int(fps)
+    
+    print("start_stream with res:", res + ", fps:", fps)
     _capture_screen = True
     # await capture_screen()
-    asyncio.create_task(capture_screen(res))
+    asyncio.create_task(capture_screen(res, fps))
     
     if audio_on:
         audio_thread = threading.Thread(target=asyncio.run, args=(stream_audio(),), daemon=True)
@@ -61,14 +65,14 @@ async def start_stream(_, res):
         # asyncio.create_task(stream_audio())
 
     
-async def capture_screen(res):
+async def capture_screen(res, fps):
     while _capture_screen:
         with mss.mss() as sct:
             try:
                 res = int(res)
             except:
                 print("res is not an int:", res)
-                
+
             sct.compression_level = 1
             monitor = sct.monitors[1]  # or a specific region
             sct_img = sct.grab(monitor)
@@ -97,7 +101,7 @@ async def capture_screen(res):
             await sio.emit('stream_data', png_data_encoded)
 
             # Delay between iterations
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(fps)
 
 
 async def stream_audio():

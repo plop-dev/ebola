@@ -49,6 +49,11 @@
 								<input type="text" id="stream_resolution" class="max-w-6 grow" value="2" />
 							</label>
 
+							<label class="input input-bordered flex items-center gap-2">
+								FPS:
+								<input type="text" id="stream_fps" class="max-w-6 grow" value="10" />
+							</label>
+
 							<div class="form-control">
 								<label class="label cursor-pointer flex gap-x-4 items-center h-[calc(100%-8px)] p-4 px-2">
 									<span class="label-text">Audio</span>
@@ -231,6 +236,7 @@
 
 			//#region stream events
 			let streamResValue = document.getElementById('stream_resolution').value;
+			let fps = document.getElementById('stream_fps').value;
 
 			document.addEventListener('DOMContentLoaded', event => {
 				document.getElementById('stream').style.display = 'none';
@@ -238,7 +244,7 @@
 
 			document.getElementById('start-stream').addEventListener('click', () => {
 				if (streamResValue === '') streamResValue = '4';
-				socket.emit('start_stream', streamResValue);
+				socket.emit('start_stream', { res: streamResValue, fps: fps });
 				document.getElementById('stream').style.display = 'flex';
 				document.getElementById('nodisplay').style.display = 'none';
 			});
@@ -267,6 +273,9 @@
 						event.target.value = '8';
 					}
 				}
+			});
+			document.getElementById('stream_fps').addEventListener('input', event => {
+				fps = event.target.value;
 			});
 			//#endregion
 
