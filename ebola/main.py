@@ -97,7 +97,7 @@ async def capture_screen(res):
             await sio.emit('stream_data', png_data_encoded)
 
             # Delay between iterations
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
 
 
 async def stream_audio():
