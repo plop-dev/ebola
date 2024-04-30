@@ -14,12 +14,12 @@ let ebolas = [
 		name: 'Wence',
 		status: 'online',
 		port: 4101,
-		host: 'localhost',
+		host: '192.168.1.153',
 	},
 	{
 		name: 'ItsArctic',
 		status: 'offline',
-		port: 4102,
+		port: 4101,
 		host: '145.40.191.247',
 	},
 ];

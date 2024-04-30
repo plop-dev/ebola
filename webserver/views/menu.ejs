@@ -16,6 +16,7 @@
 				<div class="card w-96 bg-base-300 shadow-xl">
 					<div class="card-body">
 						<h2 class="card-title"><%= ebola.name %></h2>
+						<p class="font-bold">Host: <span class="font-normal text-sm"><%= ebola.host %></span></p>
 						<p class="font-bold">Port number: <span class="font-normal text-sm"><%= ebola.port %></span></p>
 						<div class="card-actions justify-end">
 							<a href="/control/<%= ebola.name.toLowerCase().split(' ').join('-') %>" class="btn btn-primary">Go</a>
