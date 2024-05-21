@@ -51,7 +51,7 @@
 
 							<label class="input input-bordered flex items-center gap-2">
 								FPS:
-								<input type="text" id="stream_fps" class="max-w-6 grow" value="10" />
+								<input type="text" id="stream_fps" class="max-w-6 grow" value="4" />
 							</label>
 
 							<div class="form-control">
@@ -160,6 +160,12 @@
 
 		<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 		<script>
+			//#region functions
+			function sleep(ms) {
+				return new Promise(resolve => setTimeout(resolve, ms));
+			}
+			//#endregion
+
 			//#region socket init
 			const socket = io('<%= ebola.host %>:<%= ebola.port %>', { transports: ['websocket'] });
 
@@ -392,32 +398,87 @@
 
 				transmitKBDButton.classList.toggle('btn-neutral');
 			});
+			function parseKey(_key) {
+				if (_key === 'Meta') {
+					key = 'left windows';
+				} else if (_key.toLowerCase().includes('arrow')) {
+					// key = `arrow ${event.key.toLowerCase().split('arrow')[1]}`;
+					key = _key.toLowerCase().split('arrow')[1];
+				} else if (_key.toLowerCase() === 'altgraph') {
+					key = 'alt gr';
+				} else {
+					key = _key.toLowerCase();
+				}
+				return key;
+			}
 			document.addEventListener('keydown', event => {
 				if (isTransmittingKeystrokes) {
 					event.preventDefault();
 
-					// Send key information via WebSocket
-					const keyData = {
-						key: event.key,
-						code: event.code,
-					};
-					socket.emit('keypress_down', keyData);
+					let key = parseKey(event.key);
+					console.log(key);
+					socket.emit('keypress_down', key);
 				}
 			});
 			document.addEventListener('keyup', event => {
 				if (isTransmittingKeystrokes) {
 					event.preventDefault();
 
-					// Send key information via WebSocket
-					const keyData = {
-						key: event.key,
-						code: event.code,
-					};
-					socket.emit('keypress_up', keyData);
+					let key = parseKey(event.key);
+
+					socket.emit('keypress_up', key);
 				}
 			});
 			window.addEventListener('beforeunload', event => {
 				event.preventDefault();
+			});
+			//#endregion
+
+			//#region transmit mouse
+			let isTransmittingMouse = false;
+			let lastSentTime = 0;
+
+			const transmitMouseButton = document.getElementById('transmitMouse');
+			transmitMouseButton.addEventListener('click', event => {
+				isTransmittingMouse = !isTransmittingMouse;
+
+				transmitMouseButton.classList.toggle('btn-neutral');
+			});
+
+			function getMousePercentage(clientX, clientY, screenWidth, screenHeight) {
+				const xPercent = (clientX / screenWidth).toPrecision(3);
+				const yPercent = (clientY / screenHeight).toPrecision(3);
+				return { x: xPercent, y: yPercent };
+			}
+
+			function sendMousePosition(event) {
+				const currentTime = Date.now();
+				const delay = 20;
+
+				if (currentTime - lastSentTime >= delay) {
+					const mousePos = getMousePercentage(event.clientX, event.clientY, window.innerWidth, window.innerHeight);
+					socket.emit('mouse_move', mousePos);
+					lastSentTime = currentTime;
+				}
+			}
+
+			window.addEventListener('mousemove', event => {
+				if (isTransmittingMouse) {
+					sendMousePosition(event);
+				}
+			});
+
+			window.addEventListener('mousedown', event => {
+				if (isTransmittingMouse) {
+					socket.emit('mouse_down', event.button);
+					console.log(event.button);
+				}
+			});
+			window.addEventListener('mouseup', event => {
+				if (isTransmittingMouse) {
+					socket.emit('mouse_up', event.button);
+					console.log(event.button);
+				}
 			});
 			//#endregion
 		</script>

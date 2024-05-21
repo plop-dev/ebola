@@ -18,6 +18,7 @@ import sounddevice as sd
 import soundfile as sf
 import win32process
 import keyboard
+from screeninfo import get_monitors
 
 sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
@@ -37,6 +38,15 @@ CHANNELS = 1
 RATE = 44100
 CHUNK = 1024
 DURATION = 1
+
+primary_monitor = None
+for m in get_monitors():
+    if m.is_primary:
+        primary_monitor = m
+        break
+
+screen_width = primary_monitor.width
+screen_height = primary_monitor.height
 
 @sio.event
 async def connect(sid, environ):
@@ -326,17 +336,46 @@ async def edit_file(file_path, new_content):
         await sio.emit('file_edit_not_found', True)
 
 @sio.event
-async def keypress_down(_, data):
-    key = data['key']
-    keyCode = data['code']
+async def keypress_down(_, key):
     keyboard.press(key)
     
 @sio.event
-async def keypress_up(_, data):
-    key = data['key']
-    keyCode = data['code']
+async def keypress_up(_, key):
     keyboard.release(key)
 
+@sio.event
+async def mouse_move(_, pos):
+    # print(f'posX: {pos["x"]}, posY: {pos["y"]}\n, screenW: {screen_width}, screenH: {screen_height}\n')
+    x = round(float(pos['x']) * screen_width)
+    y = round(float(pos['y']) * screen_height)
+    # print(f'x: {x}, y: {y}\n')
+    ctypes.windll.user32.SetCursorPos(x, y)
+
+@sio.event
+async def mouse_down(_, button):
+    btn_down: int
+    if str(button) == '0':
+        btn_down = 0x0002
+    elif str(button) == '1':
+        btn_down = 0x0020
+    elif str(button) == '2':
+        btn_down = 0x0008
+    
+    ctypes.windll.user32.mouse_event(btn_down, 0, 0, 0,0)
+    ctypes.windll.user32.mouse_event(btn_down, 0, 0, 0,0)
+
+@sio.event
+async def mouse_up(_, button):
+    btn_up: int
+    if str(button) == '0':
+        btn_up = 0x0004
+    elif str(button) == '1':
+        btn_up = 0x0040
+    elif str(button) == '2':
+        btn_up = 0x0010
+    
+    ctypes.windll.user32.mouse_event(btn_up, 0, 0, 0,0)
+    ctypes.windll.user32.mouse_event(btn_up, 0, 0, 0,0)
 
 if __name__ == '__main__':
     web.run_app(app=app, port=SOCKET_PORT, host=HOST)
