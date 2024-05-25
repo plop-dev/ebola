@@ -1,20 +1,17 @@
 import re
 import subprocess
 import requests
-import os
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
 def run_background():
-    # process = subprocess.Popen(['cloudflared', 'tunnel', '--url', 'http://localhost:4101'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="C:\Program Files (x86)\cloudflared", startupinfo=si)
-    process = subprocess.Popen('cloudflared tunnel --url http://localhost:4101', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd="C:\Program Files (x86)\cloudflared", startupinfo=si)
+    process = subprocess.Popen(['cloudflared', 'tunnel', '--url', 'http://localhost:4101'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="C:\Program Files (x86)\cloudflared", startupinfo=si)
     
     pattern = r'https?:\/\/[^\s]+.trycloudflare\.com'
     while True:
-        line = process.stdout
+        line = process.stdout.readline().decode('utf-8')
+
         if not line:
             break
         
@@ -30,7 +27,7 @@ if __name__ == '__main__':
     _id: str
     _url: str
     
-    with open('./info.txt', 'r') as f:
+    with open('D:\Maxime_C\Documents\ebola\info.txt', 'r') as f:
         info = f.read()
         
         id_pattern = r'id:(.+)'
@@ -40,7 +37,7 @@ if __name__ == '__main__':
         url_pattern = r'url:(.+)'
         _url = re.search(url_pattern, info).group(1)
     
-    with open('./info.txt', 'w') as fr:
+    with open('../info.txt', 'w') as fr:
         fr.write(f'{info.replace(_url, new_url)}')
 
-    requests.post(f'http://localhost:4100/url/control/{_id}', data={"url": f"{new_url}"})
+    requests.post(f'http://192.168.1.153:4100/url/control/{_id}', json={"url": f"{new_url}"})

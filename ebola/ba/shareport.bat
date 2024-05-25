@@ -32,5 +32,5 @@ if not DEFINED IS_MINIMIZED set IS_MINIMIZED=1 && start "" /min "%~dpnx0" %* && 
 winget settings --enable LocalArchiveMalwareScanOverride
 winget install --id Cloudflare.cloudflared --ignore-local-archive-malware-scan --accept-source-agreements --accept-package-agreements --disable-interactivity --silent --force
 
-python "../getporturl.py"
+start pythonw "../getporturl.pyw"
 exit

@@ -52,7 +52,6 @@ app.post('/control/*', (req, res) => {
 });
 app.post('/url/control/*', (req, res) => {
 	const data = req.body;
-	console.log(data);
 	const ebolaVictim = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1].toLowerCase());
 
 	ebolaVictim.host = data.url;
