@@ -167,7 +167,7 @@
 			//#endregion
 
 			//#region socket init
-			const socket = io('<%= ebola.host %>:<%= ebola.port %>', { transports: ['websocket'] });
+			const socket = io('<%= ebola.host %>', { transports: ['websocket'] });
 
 			document.addEventListener('DOMContentLoaded', event => {
 				let counter = 0;

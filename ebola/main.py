@@ -24,7 +24,7 @@ sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
 
-HOST = '192.168.1.153'
+HOST = '0.0.0.0'
 SOCKET_PORT = 4101
 
 working_dir = "."
