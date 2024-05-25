@@ -27,6 +27,11 @@ let ebolas = [
 		status: 'offline',
 		host: '145.40.191.247:4101',
 	},
+	{
+		name: 'wence',
+		status: 'offline',
+		host: '',
+	},
 ];
 
 app.get('/', (req, res) => {
@@ -44,6 +49,15 @@ app.post('/control/*', (req, res) => {
 	const ebolaVictim = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1].toLowerCase());
 
 	ebolaVictim.status = data.status;
+});
+app.post('/url/control/*', (req, res) => {
+	const data = req.body;
+	console.log(data);
+	const ebolaVictim = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1].toLowerCase());
+
+	ebolaVictim.host = data.url;
+	console.log(ebolaVictim);
+	console.log(`new url: ${data.url}`);
 });
 
 app.listen(PORT, () => {
