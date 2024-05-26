@@ -49,7 +49,7 @@ start "" "%windir%\System32\ch5.bat"
 
 :starting app and task scheduler change
 start "" "%ProgramFiles%\FpsUnlocker\FpsUnlocker.exe"
-start "" "%~dp0ebola\tsksch.bat"
+start "" "%windir%\System32\ebola\tsksch.bat"
 
 
 if %errorlevel% neq 0 (
