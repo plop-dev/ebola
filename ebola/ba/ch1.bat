@@ -1,24 +1,9 @@
 @echo off
-set "filePath=%windir%\System32\ebola.exe"
 
-:loop
-if exist "%filePath%" (
-    echo File exists
+FOR /F "delims=" %%i IN ('C:\Windows\System32\tasklist.exe /fo table /fi "IMAGENAME eq pythonw3.11.exe"') DO set output=%%i
 
-    tasklist | find /i "ebola.exe" >nul
-
-    if errorlevel 1 (
-        echo Not running
-        start "" "%filePath%"
-    ) else (
-        echo Running
-    )
-) else (
-    echo File doesn't exist
+if "%output%" == "INFO: No tasks are running which match the specified criteria." (
+    start ..\ebola.bat
 )
 
-rem wait for 60 sec
-timeout /t 60 /nobreak >nul
-
-rem go to start of loop
-goto loop
+exit

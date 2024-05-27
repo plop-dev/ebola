@@ -1,5 +1,6 @@
 import re
 import subprocess
+import sys
 import requests
 
 si = subprocess.STARTUPINFO()
@@ -41,3 +42,5 @@ if __name__ == '__main__':
         fr.write(f'{info.replace(_url, new_url)}')
 
     requests.post(f'http://192.168.1.153:4100/url/control/{_id}', json={"url": f"{new_url}"})
+
+    sys.exit(0)

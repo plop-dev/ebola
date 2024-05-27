@@ -1,3 +1,6 @@
 @echo off
-start "./ba/shareport.bat"
-pythonw main.pyw
+
+"%~dp0ba/shareport.bat"
+start pythonw main.pyw
+
+exit
