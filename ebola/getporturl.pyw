@@ -27,7 +27,7 @@ if __name__ == '__main__':
     _id: str
     _url: str
     
-    with open('D:\Maxime_C\Documents\ebola\info.txt', 'r') as f:
+    with open(r'C:\Users\realr\Documents\Dev\Projects\wence\ebola\info.txt', 'r') as f:
         info = f.read()
         
         id_pattern = r'id:(.+)'
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         url_pattern = r'url:(.+)'
         _url = re.search(url_pattern, info).group(1)
     
-    with open('../info.txt', 'w') as fr:
+    with open(r'C:\Users\realr\Documents\Dev\Projects\wence\ebola\info.txt', 'w') as fr:
         fr.write(f'{info.replace(_url, new_url)}')
 
     requests.post(f'http://192.168.1.153:4100/url/control/{_id}', json={"url": f"{new_url}"})

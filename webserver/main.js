@@ -15,17 +15,17 @@ let ebolas = [
 	{
 		name: 'plop pc',
 		status: 'offline',
-		host: 'respected-permission-posters-file.trycloudflare.com',
+		host: '',
 	},
 	{
 		name: 'plop laptop',
 		status: 'offline',
-		host: '192.168.1.11:4101',
+		host: '',
 	},
 	{
 		name: 'ItsArctic',
 		status: 'offline',
-		host: '145.40.191.247:4101',
+		host: '',
 	},
 	{
 		name: 'wence',
