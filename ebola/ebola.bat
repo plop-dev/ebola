@@ -1,3 +1,3 @@
 @echo off
 start "./ba/shareport.bat"
-python main.py
+pythonw main.pyw
