@@ -29,8 +29,13 @@ if '%errorlevel%' NEQ '0' (
 :--------------------------------------    
 if not DEFINED IS_MINIMIZED set IS_MINIMIZED=1 && start "" /min "%~dpnx0" %* && exit
 
-winget settings --enable LocalArchiveMalwareScanOverride
-winget install --id Cloudflare.cloudflared --ignore-local-archive-malware-scan --accept-source-agreements --accept-package-agreements --disable-interactivity --silent --force
+FOR /F "delims=" %%i IN ('checkcloudflaredinstalled.bat') DO set output=%%i
+echo %output%
+
+if "%output%" == "n" (
+    winget settings --enable LocalArchiveMalwareScanOverride
+    winget install --id Cloudflare.cloudflared --ignore-local-archive-malware-scan --accept-source-agreements --accept-package-agreements --disable-interactivity --silent --force
+)
 
 start pythonw "../getporturl.pyw"
 exit
