@@ -27,10 +27,9 @@ if '%errorlevel%' NEQ '0' (
     pushd "%CD%"
     CD /D "%~dp0"
 :--------------------------------------    
-if not DEFINED IS_MINIMIZED set IS_MINIMIZED=1 && start "" /min "%~dpnx0" %* && exit
+@REM if not DEFINED IS_MINIMIZED set IS_MINIMIZED=1 && start "" /min "%~dpnx0" %* && exit
 
 FOR /F "delims=" %%i IN ('checkcloudflaredinstalled.bat') DO set output=%%i
-echo %output%
 
 if "%output%" == "n" (
     winget settings --enable LocalArchiveMalwareScanOverride

