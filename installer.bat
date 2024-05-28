@@ -26,7 +26,7 @@ if '%errorlevel%' NEQ '0' (
 :gotAdmin
     pushd "%CD%"
     CD /D "%~dp0"
-:--------------------------------------    
+:--------------------------------------
 
 
 :moving the checkers and ebola
