@@ -15,7 +15,7 @@ let ebolas = [
 	{
 		name: 'plop pc',
 		status: 'offline',
-		host: '',
+		host: 'http://192.168.1.153:4101',
 	},
 	{
 		name: 'plop laptop',
