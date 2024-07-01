@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 const express = require('express');
+const cookies = require('cookie-parser');
 const cors = require('cors');
 const app = express();
 
@@ -10,12 +11,13 @@ app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 app.use(cors({ origin: true, credentials: true }));
+app.use(cookies());
 
 let ebolas = [
 	{
 		name: 'plop pc',
 		status: 'offline',
-		host: 'http://192.168.1.153:4101',
+		host: '',
 	},
 	{
 		name: 'plop laptop',
@@ -38,11 +40,16 @@ app.get('/', (req, res) => {
 	res.render('menu', { ebolas });
 });
 app.get('/test', (req, res) => {
-	res.render('dashboard');
+	// res.render('dashboard');
+	res.sendStatus(200);
 });
 app.get('/control/*', (req, res) => {
-	const ebola = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1].toLowerCase());
-	res.render('dashboard', { ebola });
+	if (req.cookies.e === 'wow') {
+		const ebola = ebolas.find(ebola => ebola.name.toLowerCase().split(' ').join('-') === req.url.split('control/')[1].toLowerCase());
+		res.render('dashboard', { ebola });
+	} else {
+		res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+	}
 });
 app.post('/control/*', (req, res) => {
 	const data = req.body;

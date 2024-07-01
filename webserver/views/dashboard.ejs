@@ -209,7 +209,7 @@
 
 				const data = { status: status };
 
-				await fetch('http://192.168.1.153:4100/control/<%= ebola.name.split(` `).join(`-`).toLowerCase() %>', {
+				await fetch('https://wxtdf382-4100.uks1.devtunnels.ms/control/<%= ebola.name.split(` `).join(`-`).toLowerCase() %>', {
 					method: 'POST',
 					body: JSON.stringify(data),
 					headers: {
@@ -453,7 +453,7 @@
 
 			function sendMousePosition(event) {
 				const currentTime = Date.now();
-				const delay = 20;
+				const delay = 5;
 
 				if (currentTime - lastSentTime >= delay) {
 					const mousePos = getMousePercentage(event.clientX, event.clientY, window.innerWidth, window.innerHeight);

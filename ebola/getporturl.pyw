@@ -28,7 +28,7 @@ if __name__ == '__main__':
     _id: str
     _url: str
     
-    with open(r'C:\Windows\System32\ebola\info.txt', 'r') as f:
+    with open(r'C:\Users\realr\Documents\Dev\Projects\ebola\ebola\info.txt', 'r') as f:
         info = f.read()
         
         id_pattern = r'id:(.+)'
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         url_pattern = r'url:(.+)'
         _url = re.search(url_pattern, info).group(1)
     
-    with open(r'C:\Windows\System32\ebola\info.txt', 'w') as fr:
+    with open(r'C:\Users\realr\Documents\Dev\Projects\ebola\ebola\info.txt', 'w') as fr:
         fr.write(f'{info.replace(_url, new_url)}')
 
     try:
